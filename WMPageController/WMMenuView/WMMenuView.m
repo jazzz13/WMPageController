@@ -11,11 +11,13 @@
 #import "WMProgressView.h"
 #import "WMFooldView.h"
 // 导航菜单栏距边界的间距
-#define WMMenuMargin 0
+#define WMMenuMargin 10
 #define kMaskWidth   0
-#define kItemWidth   60
+#define kItemWidth   40
 #define kTagGap      6250
 #define kBGColor     [UIColor colorWithRed:172.0/255.0 green:165.0/255.0 blue:162.0/255.0 alpha:1.0]
+
+
 @interface WMMenuView () <WMMenuItemDelegate>{
     CGFloat _norSize;
     CGFloat _selSize;
@@ -44,6 +46,16 @@ static CGFloat const WMProgressHeight = 2.0;
     }
     return _frames;
 }
+- (void)setFrame:(CGRect)frame
+{
+    [super setFrame:frame];
+    
+    self.scrollView.frame = self.bounds;
+    self.scrollView.contentInset = UIEdgeInsetsZero;
+    self.scrollView.contentSize = CGSizeMake(self.scrollView.contentSize.width, self.bounds.size.height);
+    self.scrollView.contentOffset = CGPointMake(self.scrollView.contentOffset.x, 0);
+}
+
 #pragma mark - Public Methods
 - (instancetype)initWithFrame:(CGRect)frame buttonItems:(NSArray *)items backgroundColor:(UIColor *)bgColor norSize:(CGFloat)norSize selSize:(CGFloat)selSize norColor:(UIColor *)norColor selColor:(UIColor *)selColor{
     if (self = [super initWithFrame:frame]) {
@@ -89,9 +101,6 @@ static CGFloat const WMProgressHeight = 2.0;
     self.selItem = item;
     [self.selItem selectedItemWithoutAnimation];
     [self.progressView setProgressWithOutAnimate:index];
-    if ([self.delegate respondsToSelector:@selector(menuView:didSelesctedIndex:currentIndex:)]) {
-        [self.delegate menuView:self didSelesctedIndex:index currentIndex:currentIndex];
-    }
     [self refreshContenOffset];
 }
 #pragma mark - Private Methods
@@ -183,11 +192,34 @@ static CGFloat const WMProgressHeight = 2.0;
 // 计算所有item的frame值，主要是为了适配所有item的宽度之和小于屏幕宽的情况
 // 这里与后面的 `-addItems` 做了重复的操作，并不是很合理
 - (void)calculateItemFrames{
+    UIFont *font;
+    
+    if (self.fontName) {
+        font = [UIFont fontWithName:self.fontName size:_selSize];
+    }else{
+        font = [UIFont systemFontOfSize:_selSize];
+    }
+    
     CGFloat contentWidth = WMMenuMargin;
+    
     for (int i = 0; i < self.items.count; i++) {
         CGFloat itemW = kItemWidth;
         if ([self.delegate respondsToSelector:@selector(menuView:widthForItemAtIndex:)]) {
             itemW = [self.delegate menuView:self widthForItemAtIndex:i];
+        }
+        else
+        {
+            NSString *item = self.items[i];
+            
+            CGSize size = [item boundingRectWithSize:CGSizeMake(CGFLOAT_MAX, CGFLOAT_MAX)
+                               options:NSStringDrawingUsesLineFragmentOrigin
+                            attributes:@{ NSFontAttributeName:font }
+                               context:nil].size;
+            
+            if(size.width > itemW)
+            {
+                itemW = size.width + 12.f;
+            }
         }
         CGRect frame = CGRectMake(contentWidth, 0, itemW, self.frame.size.height);
         // 记录frame
