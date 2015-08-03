@@ -24,7 +24,7 @@
 - (instancetype)initWithFrame:(CGRect)frame{
     if (self = [super initWithFrame:frame]) {
         WMFooldHeight = frame.size.height;
-        WMFooldMargin = WMFooldHeight * 0.15;
+        WMFooldMargin = 11.f;
         WMFooldRadius = (WMFooldHeight - 2*WMFooldMargin)/2;
         WMFooldLength = frame.size.width  - 2*WMFooldRadius;
         kTime = 20.0;
@@ -71,13 +71,14 @@
     // Drawing code
     int currentIndex = (int)self.progress;
     CGFloat rate = self.progress - currentIndex;
-    int nextIndex = currentIndex+1 >= self.itemFrames.count ?: currentIndex+1;
+    int nextIndex = currentIndex+1 >= self.itemFrames.count ? currentIndex : currentIndex+1;
 
     // 当前item的各数值
     CGRect  currentFrame = [self.itemFrames[currentIndex] CGRectValue];
     CGFloat currentWidth = currentFrame.size.width;
     CGFloat currentX = currentFrame.origin.x;
     // 下一个item的各数值
+    
     CGFloat nextWidth = [self.itemFrames[nextIndex] CGRectValue].size.width;
     CGFloat nextX = [self.itemFrames[nextIndex] CGRectValue].origin.x;
     // 计算点
